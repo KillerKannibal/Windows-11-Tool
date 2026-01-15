@@ -29,6 +29,10 @@ This utility provides essential tweaks, privacy enhancements, and optional app m
 - Progress bar shows real-time tweak application
 - Status label indicates current operation and completion
 
+## Here's what the tool looks like:
+
+<img width="1084" height="687" alt="{B34792B5-9C33-43AA-A0AF-A16F2A1F4C17}" src="https://github.com/user-attachments/assets/b1a7a6c9-f722-4088-b853-cb32527cf358" />
+
 ---
 
 ## Requirements
