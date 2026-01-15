@@ -7,6 +7,8 @@ using System.Security.Principal;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Microsoft.Win32;
+using System.ServiceProcess;
+
 
 namespace Win11Debloat
 {
@@ -46,7 +48,7 @@ namespace Win11Debloat
                 Dock = DockStyle.Left,
                 Width = 300,
                 Padding = new Padding(12),
-                BackColor = Color.FromArgb(225, 225, 225) // slightly darker than panel for contrast
+                BackColor = Color.FromArgb(225, 225, 225)
             };
 
             // Apply / Recommended buttons
@@ -57,11 +59,17 @@ namespace Win11Debloat
             btnRemoveEdge = CreateButton("Remove Microsoft Edge (Advanced)", RemoveEdge);
             btnRemoveEdge.Height = 48;
 
+            // New: Install Selected Apps button
+            var btnInstallApps = CreateButton("Install Selected Apps", async () => await InstallWingetAppsAsync());
+            btnInstallApps.Height = 48;
+
             // Add buttons to sidebar
             sidebar.Controls.Add(btnApply);
             sidebar.Controls.Add(btnRecommended);
             sidebar.Controls.Add(new Label { Height = 16 }); // spacing
             sidebar.Controls.Add(btnRemoveEdge);
+            sidebar.Controls.Add(new Label { Height = 8 });  // spacing
+            sidebar.Controls.Add(btnInstallApps);
 
             // ----------------------
             // Main tweaks panel
@@ -73,16 +81,19 @@ namespace Win11Debloat
                 WrapContents = false,
                 AutoScroll = true,
                 Padding = new Padding(16),
-                BackColor = Color.FromArgb(240, 240, 240) // light grey for Win11 look
+                BackColor = Color.FromArgb(240, 240, 240)
             };
 
-            // Add toggles for each registered tweak
+            // Add toggles for tweaks
             foreach (var tweak in tweaks)
             {
-                var toggle = CreateToggle(tweak.Name);
-                toggle.Checked = tweak.Recommended;
-                tweak.Toggle = toggle;
-                tweaksPanel.Controls.Add(toggle);
+                tweaksPanel.Controls.Add(tweak.Toggle);
+            }
+
+            // Add toggles for Winget apps
+            foreach (var app in wingetApps)
+            {
+                tweaksPanel.Controls.Add(app.Toggle);
             }
 
             // ----------------------
@@ -111,6 +122,7 @@ namespace Win11Debloat
             Controls.Add(statusLabel);
             Controls.Add(sidebar);
         }
+
 
 
         private Button CreateButton(string text, Action onClick)
@@ -210,6 +222,7 @@ namespace Win11Debloat
         {
             tweaksPanel.Controls.Add(CreateSectionHeader("System Tweaks"));
 
+            // Existing tweaks
             AddTweak("Disable Advertising ID", true,
                 () => SetCU(@"Software\Microsoft\Windows\CurrentVersion\AdvertisingInfo", "Enabled", 0));
 
@@ -221,12 +234,44 @@ namespace Win11Debloat
                     "SubscribedContent-338388Enabled", 0));
 
             AddTweak("Disable Bing Search in Start Menu", true,
-                () => SetCU(@"Software\Microsoft\Windows\CurrentVersion\Search",
-                    "BingSearchEnabled", 0));
+                () => SetCU(@"Software\Microsoft\Windows\CurrentVersion\Search", "BingSearchEnabled", 0));
 
             AddTweak("Disable Windows Copilot", true,
                 () => DisableCopilot(IsAdmin()));
+
+            // ----------------------
+            // Additional Safe Tweaks
+            // ----------------------
+
+            AddTweak("Disable Game Bar", true,
+                () => SetCU(@"Software\Microsoft\GameBar", "AllowAutoGameMode", 0));
+
+            AddTweak("Disable Xbox Services", true,
+                () =>
+                {
+                    try
+                    {
+                        foreach (var svc in new[] { "XblAuthManager", "XboxGipSvc", "XblGameSave", "XboxNetApiSvc" })
+                        {
+                            using var sc = new ServiceController(svc);
+                            if (sc.Status != ServiceControllerStatus.Stopped)
+                                sc.Stop();
+                            sc.WaitForStatus(ServiceControllerStatus.Stopped, TimeSpan.FromSeconds(5));
+                        }
+                    }
+                    catch { /* silently fail if not present */ }
+                });
+
+            AddTweak("Disable Animations", false,
+                () => SetCU(@"Software\Microsoft\Windows\CurrentVersion\Explorer\VisualEffects", "VisualFXSetting", 2));
+
+            AddTweak("Disable Transparency Effects", false,
+                () => SetCU(@"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize", "EnableTransparency", 0));
+
+            AddTweak("Disable OneDrive Auto-Start", false,
+                () => SetCU(@"Software\Microsoft\Windows\CurrentVersion\Run", "OneDrive", ""));
         }
+
 
         private void AddTweak(string name, bool recommended, Action apply)
         {
@@ -287,17 +332,33 @@ namespace Win11Debloat
 
         private void RegisterWingetApps()
         {
-            tweaksPanel.Controls.Add(CreateSectionHeader("Essential Apps (WinGet)"));
+            tweaksPanel.Controls.Add(CreateSectionHeader("Essential Apps (Installs via WinGet)"));
 
             AddWingetApp("Google Chrome", "Google.Chrome");
             AddWingetApp("Mozilla Firefox", "Mozilla.Firefox");
             AddWingetApp("Brave Browser", "Brave.Brave");
             AddWingetApp("7-Zip", "7zip.7zip");
-            AddWingetApp("Notepad++", "Notepad++.Notepad++");
             AddWingetApp("Everything (Voidtools)", "voidtools.Everything");
-            AddWingetApp("Visual Studio Code", "Microsoft.VisualStudioCode");
-            AddWingetApp("Git", "Git.Git");
             AddWingetApp("VLC Media Player", "VideoLAN.VLC");
+            AddWingetApp("Steam", "valvesoftware.Steam");
+            AddWingetApp("Discord", "Discord.Discord");
+            AddWingetApp("Spotify", "Spotify.Spotify");
+            AddWingetApp("Winrar", "WinRAR.WinRAR");
+            AddWingetApp("OBS Studio", "OBSProject.OBSStudio");
+
+            tweaksPanel.Controls.Add(CreateSectionHeader("Coding Apps (Installs via WinGet)"));
+
+            AddWingetApp("Visual Studio Code", "Microsoft.VisualStudioCode");
+            AddWingetApp("Notepad++", "Notepad++.Notepad++");
+            AddWingetApp("Python 3", "Python.Python.3");
+            AddWingetApp("Node.js LTS", "OpenJS.NodeJS.LTS");
+            AddWingetApp("Docker Desktop", "Docker.DockerDesktop");
+            AddWingetApp("Postman", "Postman.Postman");
+            AddWingetApp("Rust", "Rustlang.Rust");
+            AddWingetApp("Go", "Google.Go");
+            AddWingetApp("Java Runtime Environment", "EclipseAdoptium.Temurin.17");
+            AddWingetApp("Git", "Git.Git");
+
         }
 
         private void AddWingetApp(string name, string id)
@@ -416,14 +477,10 @@ namespace Win11Debloat
 
         private void RemoveEdge()
         {
-            if (!IsAdmin())
-            {
-                MessageBox.Show("Administrator privileges required.");
-                return;
-            }
+         
 
             var confirm = MessageBox.Show(
-                "This will remove Microsoft Edge.\nWindows Update may reinstall it.\n\nContinue?",
+                "This will remove Microsoft Edge.\nWindows Update may reinstall it, Typical Microsoft.\n\nContinue?",
                 "Confirm Edge Removal",
                 MessageBoxButtons.YesNo,
                 MessageBoxIcon.Warning);

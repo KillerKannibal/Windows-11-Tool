@@ -7,6 +7,16 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+
+    <!-- Release / Distribution Settings -->
+    <PublishSingleFile>true</PublishSingleFile>       <!-- Bundle into one EXE -->
+    <SelfContained>true</SelfContained>             <!-- Include .NET runtime -->
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>  <!-- Target Windows 11 64-bit -->
+    <PublishTrimmed>false</PublishTrimmed>          <!-- Optional: trimming can reduce size but may break some reflection features -->
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.ServiceProcess.ServiceController" Version="10.0.2" />
+  </ItemGroup>
 
 </Project>
