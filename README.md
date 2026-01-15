@@ -17,7 +17,7 @@ This utility provides essential tweaks, privacy enhancements, and optional app m
 
 ### App Management
 - Remove Microsoft Edge (advanced users; requires admin)
-- Placeholder for Winget integration to install essential apps on fresh installs
+- Install essential apps on fresh Windows installs via WinGet (select apps from the UI)
 
 ### UI & User Experience
 - Modern, resizable Windows 11-style interface
@@ -65,9 +65,22 @@ Nope, read through the source code yourself.
 
 ---
 
+## Safety & Open Source
+
+- Fully open source: all code is visible and auditable.
+- Recommended tweaks are safe and do not harm your system.
+- Administrator privileges are only required for system-level changes.
+- You can fork, modify, or extend the tool for your own use.
+
+
+---
+
 ## Installation
 
 1. Clone or download the repository:
 
 ```bash
 git clone https://github.com/KillerKannibal/Windows-11-Tool.git
+
+
+
