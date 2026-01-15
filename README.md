@@ -49,6 +49,15 @@ This utility provides essential tweaks, privacy enhancements, and optional app m
 
 > Some tweaks (e.g., removing Edge) are advanced and may have unintended consequences. Use cautiously.
 
+## FAQ
+
+Can I modify this code?
+
+Yes you can. This tool is fully open source—feel free to modify, extend, or fork it to suit your own workflow. Every tweak is transparent and auditable.
+
+Is this doing anything bad to my Installation?
+
+Nope, read through the source code yourself.
 ---
 
 ## Installation
