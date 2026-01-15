@@ -58,6 +58,7 @@ Yes you can. This tool is fully open source—feel free to modify, extend, or fo
 Is this doing anything bad to my Installation?
 
 Nope, read through the source code yourself.
+
 ---
 
 ## Installation
